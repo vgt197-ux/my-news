@@ -1,1608 +1,1323 @@
-
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI & Hardware News Aggregator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #4a6fa5;
-            --secondary-color: #166088;
-            --accent-color: #ff6b6b;
-            --bg-color: #f5f7fa;
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --border-radius: 12px;
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-            --transition: all 0.3s ease;
-        }
-
-        /* Тёмная тема */
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background: linear-gradient(135deg, var(--bg-color), var(--bg-color));
-            padding: 20px;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 25px 20px;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-            transition: background 0.3s, box-shadow 0.3s;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
-        }
-
-        h1 {
-            color: var(--secondary-color);
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-        }
-
-        [data-theme="dark"] .subtitle {
-            color: #aaa;
-        }
-
-        .meta-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
-            gap: 15px;
-            background: rgba(74, 111, 165, 0.05);
-            padding: 15px;
-            border-radius: var(--border-radius);
-            transition: background 0.3s;
-        }
-
-        [data-theme="dark"] .meta-info {
-            background: rgba(74, 111, 165, 0.15);
-            border: 1px solid #333;
-        }
-
-        #clock-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-        }
-
-        #clock {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: var(--primary-color);
-            background: rgba(255, 255, 255, 0.85);
-            padding: 12px 25px;
-            border-radius: 50px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            min-width: 200px;
-            text-align: center;
-            transition: var(--transition);
-        }
-
-        [data-theme="dark"] #clock {
-            background: rgba(30, 30, 30, 0.8);
-            color: #bbdefb;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
-
-        #clock:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        }
-
-        [data-theme="dark"] #clock:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-        }
-
-        .update-btn {
-            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            font-size: 1.1em;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 4px 15px rgba(22, 96, 136, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .update-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(22, 96, 136, 0.6);
-        }
-
-        .update-btn:active {
-            transform: translateY(1px);
-        }
-
-        .theme-toggle-btn {
-            background: var(--card-bg);
-            border: 1px solid #ccc;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        [data-theme="dark"] .theme-toggle-btn {
-            background: #2d2d2d;
-            border-color: #555;
-            color: #ffd700;
-        }
-
-        .theme-toggle-btn:hover {
-            transform: rotate(15deg);
-        }
-
-        .news-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .news-card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .news-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-        }
-
-        [data-theme="dark"] .news-card:hover {
-            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-        }
-
-        .source-header {
-            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 15px 20px;
-            font-weight: bold;
-            font-size: 1.2em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .source-header a {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .source-header a:hover {
-            text-decoration: underline;
-        }
-
-        .articles {
-            padding: 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .article {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-            transition: var(--transition);
-        }
-
-        [data-theme="dark"] .article {
-            border-bottom-color: #333;
-        }
-
-        .article:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .article:hover .article-title a {
-            color: var(--accent-color);
-        }
-
-        .article-title {
-            font-weight: 700;
-            font-size: 1.15em;
-            margin-bottom: 8px;
-            line-height: 1.3;
-            color: var(--secondary-color);
-        }
-
-        .article-title a {
-            color: inherit;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .article-summary {
-            color: #555;
-            font-size: 0.98em;
-            margin: 8px 0;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        [data-theme="dark"] .article-summary {
-            color: #bbb;
-        }
-
-        .article-date {
-            font-size: 0.85em;
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-
-        .article-link-icon {
-            margin-left: 5px;
-            color: var(--primary-color);
-            font-size: 0.9em;
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .article-title:hover .article-link-icon {
-            opacity: 1;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 25px;
-            color: #666;
-            font-size: 1em;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: background 0.3s, color 0.3s;
-        }
-
-        [data-theme="dark"] footer {
-            color: #aaa;
-        }
-
-        .sources-count {
-            display: inline-block;
-            background: var(--primary-color);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin: 0 5px;
-        }
-
-        .last-update {
-            font-weight: 500;
-            color: var(--secondary-color);
-        }
-
-        [data-theme="dark"] .last-update {
-            color: #64b5f6;
-        }
-
-        @media (max-width: 768px) {
-            .news-container {
-                grid-template-columns: 1fr;
-            }
-            #clock {
-                font-size: 1.8em;
-                min-width: auto;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            .meta-info {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .update-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0.4); }
-            70% { box-shadow: 0 0 0 12px rgba(74, 111, 165, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0); }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2em;
-            color: var(--primary-color);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI & Hardware News Aggregator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+--primary-color: #4a6fa5;
+--secondary-color: #166088;
+--accent-color: #ff6b6b;
+--bg-color: #f5f7fa;
+--card-bg: #ffffff;
+--text-color: #333;
+--border-radius: 12px;
+--shadow: 0 4px 20px rgba(0,0,0,0.08);
+--transition: all 0.3s ease;
+}
+[data-theme="dark"] {
+--bg-color: #121212;
+--card-bg: #1e1e1e;
+--text-color: #e0e0e0;
+--shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+line-height: 1.6;
+color: var(--text-color);
+background: linear-gradient(135deg, var(--bg-color), var(--bg-color));
+padding: 20px;
+min-height: 100vh;
+transition: background 0.3s, color 0.3s;
+}
+.container { max-width: 1600px; margin: 0 auto; }
+header {
+text-align: center;
+margin-bottom: 30px;
+padding: 25px 20px;
+background: var(--card-bg);
+border-radius: var(--border-radius);
+box-shadow: var(--shadow);
+position: relative;
+overflow: hidden;
+transition: background 0.3s, box-shadow 0.3s;
+}
+header::before {
+content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+}
+h1 { color: var(--secondary-color); margin-bottom: 10px; font-size: 2.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.1); }
+.subtitle { color: #666; font-size: 1.2rem; margin-bottom: 20px; }
+[data-theme="dark"] .subtitle { color: #aaa; }
+.meta-info {
+display: flex; justify-content: space-between; align-items: center; margin: 20px 0;
+flex-wrap: wrap; gap: 15px;
+background: rgba(74, 111, 165, 0.05); padding: 15px; border-radius: var(--border-radius);
+transition: background 0.3s;
+}
+[data-theme="dark"] .meta-info {
+background: rgba(74, 111, 165, 0.15); border: 1px solid #333;
+}
+#clock-container { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+#clock {
+font-size: 2.2em; font-weight: bold; color: var(--primary-color);
+background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 50px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1); min-width: 200px; text-align: center; transition: var(--transition);
+}
+[data-theme="dark"] #clock {
+background: rgba(30, 30, 30, 0.8); color: #bbdefb; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+#clock:hover { transform: scale(1.03); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+[data-theme="dark"] #clock:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+.update-btn {
+background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+color: white; border: none; padding: 14px 30px; font-size: 1.1em; font-weight: 600;
+border-radius: 50px; cursor: pointer; transition: var(--transition);
+box-shadow: 0 4px 15px rgba(22, 96, 136, 0.4); display: flex; align-items: center; gap: 10px;
+}
+.update-btn:hover { transform: translateY(-3px); box-shadow: 0 7px 20px rgba(22, 96, 136, 0.6); }
+.update-btn:active { transform: translateY(1px); }
+.theme-toggle-btn {
+background: var(--card-bg); border: 1px solid #ccc; width: 50px; height: 50px; border-radius: 50%;
+cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em;
+box-shadow: var(--shadow); transition: var(--transition);
+}
+[data-theme="dark"] .theme-toggle-btn {
+background: #2d2d2d; border-color: #555; color: #ffd700;
+}
+.theme-toggle-btn:hover { transform: rotate(15deg); }
+.news-container {
+display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 25px; margin-top: 20px;
+}
+.news-card {
+background: var(--card-bg); border-radius: var(--border-radius); overflow: hidden;
+box-shadow: var(--shadow); transition: var(--transition); display: flex; flex-direction: column; height: 100%;
+}
+.news-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.15); }
+[data-theme="dark"] .news-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+.source-header {
+background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+color: white; padding: 15px 20px; font-weight: bold; font-size: 1.2em;
+display: flex; justify-content: space-between; align-items: center;
+}
+.source-header a { color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.source-header a:hover { text-decoration: underline; }
+.articles { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; }
+.article { border-bottom: 1px solid #eee; padding-bottom: 15px; transition: var(--transition); }
+[data-theme="dark"] .article { border-bottom-color: #333; }
+.article:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.article:hover .article-title a { color: var(--accent-color); }
+.article-title { font-weight: 700; font-size: 1.15em; margin-bottom: 8px; line-height: 1.3; color: var(--secondary-color); }
+.article-title a { color: inherit; text-decoration: none; transition: var(--transition); }
+.article-summary {
+color: #555; font-size: 0.98em; margin: 8px 0; line-height: 1.5;
+display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+[data-theme="dark"] .article-summary { color: #bbb; }
+.article-date { font-size: 0.85em; color: var(--primary-color); font-weight: 500; }
+.article-link-icon { margin-left: 5px; color: var(--primary-color); font-size: 0.9em; opacity: 0; transition: var(--transition); }
+.article-title:hover .article-link-icon { opacity: 1; }
+footer {
+text-align: center; margin-top: 40px; padding: 25px; color: #666; font-size: 1em;
+background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow);
+transition: background 0.3s, color 0.3s;
+}
+[data-theme="dark"] footer { color: #aaa; }
+.sources-count {
+display: inline-block; background: var(--primary-color); color: white;
+padding: 3px 10px; border-radius: 20px; font-weight: bold; margin: 0 5px;
+}
+.last-update { font-weight: 500; color: var(--secondary-color); }
+[data-theme="dark"] .last-update { color: #64b5f6; }
+@media (max-width: 768px) {
+.news-container { grid-template-columns: 1fr; }
+#clock { font-size: 1.8em; min-width: auto; }
+h1 { font-size: 2rem; }
+.meta-info { flex-direction: column; align-items: stretch; }
+.update-btn { width: 100%; justify-content: center; }
+}
+@keyframes pulse {
+0% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0.4); }
+70% { box-shadow: 0 0 0 12px rgba(74, 111, 165, 0); }
+100% { box-shadow: 0 0 0 0 rgba(74, 111, 165, 0); }
+}
+.pulse { animation: pulse 2s infinite; }
+.loading { text-align: center; padding: 40px; font-size: 1.2em; color: var(--primary-color); }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-microchip"></i> Новостной агрегатор AI, мира software и hardware</h1>
-            <p class="subtitle">Актуальные новости из <span class="sources-count">16</span> международных и российских источников</p>
-            
-            <div class="meta-info">
-                <div id="clock-container">
-                    <i class="fas fa-clock"></i>
-                    <div id="clock">00:00:00</div>
-                </div>
-                
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="update-btn pulse" onclick="refreshNews()">
-                        <i class="fas fa-sync-alt"></i>
-                        Обновить новости
-                    </button>
-                </div>
-            </div>
-        </header>
-        
-        <main class="news-container" id="news-container">
-    
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.zdnet.com/topic/artificial-intelligence/rss.xml" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> Latest news
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.zdnet.com/article/privacy-screen-protector-s25-ultra/" target="_blank" rel="noopener noreferrer">
-                                I thought a privacy screen protector was a smart idea - until I put one on my Galaxy S25 Ultra
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">The extra security is cool, but the underlying limitations aren&#x27;t.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 22:19
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.zdnet.com/article/most-exciting-parents-and-kids-products-ces-2026/" target="_blank" rel="noopener noreferrer">
-                                The most exciting products for parents and kids we&#x27;ve seen at CES 2026 so far
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">From a real-time breastfeeding monitor to a cute bladeless stroller fan, we&#x27;ve found some of the most interesting tech aimed at parents and children at CES.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 22:12
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.zdnet.com/article/i-saw-an-infrared-light-that-attaches-to-a-monitor-and-it-could-work-wonders-on-my-seasonal-depression/" target="_blank" rel="noopener noreferrer">
-                                This near-infrared light could bring the benefits of the sun to your monitor
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Stuck inside, working on your laptop all day? This device provides a daily dose of sunlight from the convenience of your home office.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 22:11
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.zdnet.com/article/most-exciting-tvs-ces-2026-lg-hisense-and-tcl/" target="_blank" rel="noopener noreferrer">
-                                The 4 most exciting TVs we&#x27;re seeing at CES 2026 so far (including Samsung and LG)
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">At the Las Vegas trade show, we&#x27;re already seeing several premium offerings from the world&#x27;s leading TV manufacturers. Here are the standouts.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:56
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.zdnet.com/article/ces-2026-live-updates-1-5-26/" target="_blank" rel="noopener noreferrer">
-                                CES 2026 Live from Las Vegas: Live updates on TVs, Smart Glasses, Robots, and more
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">The world&#x27;s biggest technology trade show is underway, and we&#x27;re tracking the best announcements from top brands all week long.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:43
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.tomshardware.com/rss" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> Latest from Tom&#x27;s Hardware
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.tomshardware.com/monitors/gaming-monitors/samsungs-new-odyssey-3d-6k-monitor-takes-center-stage-at-ces-2026-features-solid-eye-tracking-1-000-hz-dual-mode-panel-also-on-display-alongside-new-g6-and-g8-oled-monitors" target="_blank" rel="noopener noreferrer">
-                                Samsung&#x27;s new &#x27;Odyssey 3D&#x27; 6K monitor takes center stage at CES 2026, features solid eye-tracking — 1,000 Hz dual-mode panel also on display, alongside new G6 &amp; G8 OLED monitors
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Samsung brought out the big guns at CES 2026, showing off six monitors, all aimed at different use cases. We walked away impressed with the &quot;Odyssey 3D&quot; and how convincing it was, but the co...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:34
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.tomshardware.com/news/live/nvidia-ces-2026-live-blog" target="_blank" rel="noopener noreferrer">
-                                Nvidia CES 2026 keynote live blog — Jensen Huang takes the stage to reveal what&#x27;s next for the AI company, but don&#x27;t expect new consumer GPUs
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Nvidia CEO Jensen Huang is set to take the stage at CES 2026, following a record year for the company. The keynote, held in Las Vegas, Nevada, is set to begin at 1 p.m PT, and we&#x27;ll be covering i...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 20:45
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.tomshardware.com/pc-components/ram/newegg-bundles-usd1-460-128gb-ddr5-ram-kit-with-usd50-starbucks-gift-card-drink-coffee-while-you-game-retailer-says-as-memory-hits-rtx-5080-pricing" target="_blank" rel="noopener noreferrer">
-                                Newegg bundles $1,460 128GB DDR5 memory kit with $50 Starbucks gift card — &#x27;Drink Coffee while you game!!&#x27; retailer says as memory hits RTX 5080 pricing
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Newegg has listed two 128GB G.Skill DDR5 RAM kits with a free $50 Starbucks gift card. Both kits are more expensive than a brand-new RTX 5080, as the DRAM pricing crisis hits DIY PC builders hard.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 19:31
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.tomshardware.com/pc-components/gpus/for-the-first-time-in-5-years-nvidia-will-not-announce-any-new-gpus-at-ces-company-quashes-rtx-50-super-rumors-as-ai-expected-to-take-center-stage" target="_blank" rel="noopener noreferrer">
-                                For the first time in 5 years, Nvidia will not announce any new GPUs at CES — company quashes RTX 50 Super rumors as AI expected to take center stage
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Nvidia has just announced on X that its CES 2026 keynote will not include &quot;any new GPUs,&quot; breaking a five-year long streak of unveiling new hardware at every Las Vegas show. Instead, the com...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 19:21
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.tomshardware.com/pc-components/external-ssds/owc-reveals-192tb-of-blazing-6-6-gb-s-storage-inside-desktop-data-powerhouse-twelve-16tb-m-2-ssds-deliver-potent-speed-through-thunderbolt-5" target="_blank" rel="noopener noreferrer">
-                                OWC reveals 192TB of blazing 6.6 GB/s storage inside desktop data powerhouse — twelve 16TB M.2 SSDs deliver potent speed through Thunderbolt 5
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">OWC unveils a game-changing capacity boost for its ThunderBlade X12 RAID storage solution— now offering an astonishing 192TB of storage, doubling its previous maximum.</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 19:16
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://3dnews.ru/hardware-news/rss" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> 3DNews - новости, хард
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134856" target="_blank" rel="noopener noreferrer">
-                                Новая статья: Итоги 2025 года: носимые устройства
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Давненько мы не подкрадывались к обобщенному разговору о таком сегменте техники как носимые устройства. Что ж, возьмем за практику время от времени подводить итоги года по отдельным тематикам, чтобы п...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:11
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134848/tcl-predstavila-televizor-x11l-s-podsvetkoy-sqdmini-led-s-uluchshennoy-tsvetoperedachey-i-tsenoy-do-10-000" target="_blank" rel="noopener noreferrer">
-                                TCL представила телевизор X11L с подсветкой SQD-Mini LED с улучшенной цветопередачей и ценой до $10 000
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Одной из основных тем выставки потребительской электроники CES 2026 стала технология подсветки RGB LED. Почти все крупные производители телевизоров планируют продемонстрировать свои новейшие модели, и...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 19:50
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134844/asus-pokazala-flagmanskuyu-geforce-rtx-5090-proart-s-minimalistichnim-dizaynom-i-vsego-dvumya-ventilyatorami" target="_blank" rel="noopener noreferrer">
-                                Asus показала флагманскую GeForce RTX 5090 ProArt с минималистичным дизайном и всего двумя вентиляторами
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Компания Asus демонстрирует на выставке CES 2026 видеокарту GeForce RTX 5090 ProArt с системой охлаждения, напоминающей эталонную версию RTX 5090 Founders Edition от Nvidia. В состав системы охлаждени...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 18:18
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134842/sandisk-pohoronila-marki-wdblack-i-wd-blue-teper-eyo-ssd-budut-nazivatsya-optimus" target="_blank" rel="noopener noreferrer">
-                                Sandisk похоронила марки WD_Black и WD Blue — теперь её SSD будут называться Optimus
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Компания SanDisk представила на выставке CES 2026 новую серию потребительских твердотельных накопителей SanDisk Optimus. Она пришла на смену потребительским линейкам SSD WD Blue и WD_Black. Накопители...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 18:15
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134840/thermaltake-predstavila-retrokorpusa-s-imitatsiey-diskovoda" target="_blank" rel="noopener noreferrer">
-                                Thermaltake представила ретро-корпуса с имитацией дисковода
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Thermaltake представила на CES 2026 серию корпусов и систем жидкостного охлаждения Retro, вдохновлённую эстетикой персональных компьютеров 80-х и 90-х годов, но построенную на современной технической ...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 18:07
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://news.ycombinator.com/rss" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> Hacker News
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://loworbitsecurity.com/radar/radar16/" target="_blank" rel="noopener noreferrer">
-                                There were BGP anomalies during the Venezuela blackout
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;a href=&quot;https://news.ycombinator.com/item?id=46504963&quot;&gt;Comments&lt;/a&gt;</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:05
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://calnewport.com/why-didnt-ai-join-the-workforce-in-2025/" target="_blank" rel="noopener noreferrer">
-                                Why Didn&#x27;t AI &quot;Join the Workforce&quot; in 2025?
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;a href=&quot;https://news.ycombinator.com/item?id=46505735&quot;&gt;Comments&lt;/a&gt;</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 22:10
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://github.com/Adversis/tailsnitch" target="_blank" rel="noopener noreferrer">
-                                Show HN: Tailsnitch – A security auditor for Tailscale
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;a href=&quot;https://news.ycombinator.com/item?id=46501137&quot;&gt;Comments&lt;/a&gt;</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 16:47
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://andrew.grahamyooll.com/blog/Try-to-Take-My-Position/" target="_blank" rel="noopener noreferrer">
-                                Try to take my position: The best promotion advice I ever got
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;a href=&quot;https://news.ycombinator.com/item?id=46466027&quot;&gt;Comments&lt;/a&gt;</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 02 Jan 15:56
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://perishablepress.com/google-broke-my-heart/" target="_blank" rel="noopener noreferrer">
-                                Google broke my heart
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;a href=&quot;https://news.ycombinator.com/item?id=46505518&quot;&gt;Comments&lt;/a&gt;</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:52
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://3dnews.ru/breaking/rss" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> 3DNews - важные новости
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134226/itogi-2025-goda-nosimie-ustroystva" target="_blank" rel="noopener noreferrer">
-                                Итоги 2025 года: носимые устройства
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Давненько мы не подкрадывались к обобщенному разговору о таком сегменте техники как носимые устройства. Что ж, возьмем за практику время от времени подводить итоги года по отдельным тематикам, чтобы п...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 21:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134847/interfeys-brauzera-microsot-edge-nachali-peredelivat-po-obrazu-i-podobiyu-copilot" target="_blank" rel="noopener noreferrer">
-                                Интерфейс браузера Microsot Edge начали переделывать по образу и подобию Copilot
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Microsoft начала тестировать масштабное обновление интерфейса своего браузера Edge, вдохновлённое визуальным стилем Copilot. Новые элементы дизайна уже доступны на каналах предварительного тестировани...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 19:41
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134844/asus-pokazala-flagmanskuyu-geforce-rtx-5090-proart-s-minimalistichnim-dizaynom-i-vsego-dvumya-ventilyatorami" target="_blank" rel="noopener noreferrer">
-                                Asus показала флагманскую GeForce RTX 5090 ProArt с минималистичным дизайном и всего двумя вентиляторами
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Компания Asus демонстрирует на выставке CES 2026 видеокарту GeForce RTX 5090 ProArt с системой охлаждения, напоминающей эталонную версию RTX 5090 Founders Edition от Nvidia. В состав системы охлаждени...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 18:18
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134841/viglyadit-chertovski-horosho-fanati-ostalis-v-vostorge-ot-9-minut-geympleya-goblinskogo-stelsekshena-styx-blades-of-greed" target="_blank" rel="noopener noreferrer">
-                                «Выглядит чертовски хорошо»: фанаты остались в восторге от 9 минут геймплея гоблинского стелс-экшена Styx: Blades of Greed
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Разработчики из французской Cyanide Studio при поддержке издателя Nacon устроили 9-минутную геймплейную демонстрацию своего фэнтезийного стелс-экшена Styx: Blades of Greed &amp;mdash; продолжения Styx...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 17:07
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134833/tekst-i-detali-stanut-chyotche-lg-i-samsung-pereveli-oledpaneli-dlya-igrovih-monitorov-na-vertikalnuyu-rgbstrukturu" target="_blank" rel="noopener noreferrer">
-                                Текст и детали станут чётче: LG и Samsung перевели OLED-панели для игровых мониторов на вертикальную RGB-структуру
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Новые игровые OLED-мониторы, которые выйдут в этом году, обещают стать более чёткими и выразительными. LG и Samsung, крупнейшие производители OLED-панелей для игровых мониторов, перевели их на структу...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 13:27
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.opennet.ru/opennews/opennews_all.rss" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> OpenNews.opennet.ru: Общая лента новостей
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.opennet.ru/opennews/art.shtml?num=64567" target="_blank" rel="noopener noreferrer">
-                                GNOME и Firefox намерены отключить по умолчанию вставку средней кнопкой мыши
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Для применения в GNOME и Firefox предложены изменения, отключающие по умолчанию одну из полезных функций графических окружений в Linux - возможность быстрой вставки содержимого буфера обмена (PRIMARY ...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 19:47
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.opennet.ru/opennews/art.shtml?num=64565" target="_blank" rel="noopener noreferrer">
-                                Представлены умные часы Pebble Round 2 на открытой платформе PebbleOS
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Эрик Мигиковски (Eric Migicovsky), основатель компании Pebble Technology, представил умные часы Pebble Round 2, которые будут выпускаться на базе открытой платформы PebbleOS. Новая модель дополнила вы...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 18:49
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.opennet.ru/opennews/art.shtml?num=64563" target="_blank" rel="noopener noreferrer">
-                                Участники команды Debian Data Protection Team сложили полномочия
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Андреас Тилле (Andreas Tille), лидер проекта Debian, опубликовал отчёт, в котором упомянул о проблемах в команде Data Protection Team - три представителя, работавших в данной команде, одновременно сло...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 11:58
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.opennet.ru/opennews/art.shtml?num=64562" target="_blank" rel="noopener noreferrer">
-                                Проект MiDesktop развивает форк KDE 1 для современных систем
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Представлен первый экспериментальный выпуск проекта MiDesktop, развивающего форк среды рабочего стола KDE 1.1.2, адаптированный для работы в современных системах. Кодовая база KDE 1 портирована на фре...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 09:55
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.opennet.ru/opennews/art.shtml?num=64561" target="_blank" rel="noopener noreferrer">
-                                В GNU Wget2 2.2.1 устранена уязвимость, допускающая перезапись произвольных файлов
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Доступен выпуск проекта GNU Wget2 2.2.1, развивающего переписанный с нуля и  полностью  переработанный вариант программы для автоматизации рекурсивной загрузки контента GNU Wget. Wget2 предоставляет н...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 09:11
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://naked-science.ru/?yandex_feed=news" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> Naked Science
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://naked-science.ru/community/1147566" target="_blank" rel="noopener noreferrer">
-                                Инфографика: в каких странах люди чаще чувствуют себя одинокими
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Инфографика: в каких странах люди чаще чувствуют себя одинокими</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 12:25
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://naked-science.ru/community/1142251" target="_blank" rel="noopener noreferrer">
-                                Инфографика: какие страны имеют противоспутниковое оружие
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Инфографика: какие страны имеют противоспутниковое оружие</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 10:56
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://naked-science.ru/article/column/menyalis-rozhdestvenskie" target="_blank" rel="noopener noreferrer">
-                                Ученые рассказали, как менялись рождественские традиции в России и мире
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Ученые рассказали, как менялись рождественские традиции в России и мире</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 08:42
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://naked-science.ru/article/cosmonautics/lataemoe-stare" target="_blank" rel="noopener noreferrer">
-                                Латаемое старье: действительно ли наши космонавты будут летать на списанных модулях МКС?
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Латаемое старье: действительно ли наши космонавты будут летать на списанных модулях МКС?</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 07:53
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://naked-science.ru/community/1145219" target="_blank" rel="noopener noreferrer">
-                                Инфографика: эволюция звезд и черные дыры
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Инфографика: эволюция звезд и черные дыры</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 06:00
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.cnews.ru/inc/rss/news.xml" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> CNews.ru
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/news/top/2026-01-05_v_moskve_ustanovyat_85_tysyach" target="_blank" rel="noopener noreferrer">
-                                Москва создает собственную альтернативу GPS и «ГЛОНАСС»
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;«Мосгортранс» выделил 1,385 млрд руб. на разработку системы отслеживания местоположения транспорта на территории Москвы. В столице будет установлено 85 тыс. устройств, которые будут подключат...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 12:15
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/news/top/2026-01-05_rossiyane_sozdali_instrument" target="_blank" rel="noopener noreferrer">
-                                Россияне разработали инструмент для поиска уязвимостей в ПО на этапе его создания
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;Российские ученые создали инструмент, который уже в процессе разработки ПО автоматически строит детальную карту потенциальных уязвимостей. &lt;br /&gt;&lt;/p&gt;</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 10:42
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/news/top/2026-01-05_microsoft_zakroet_proekt_po_razrabotke" target="_blank" rel="noopener noreferrer">
-                                Microsoft закрывает разработку легкой Windows 11 для дешевых ПК
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;Microsoft официально объявила о прекращении поддержки Windows 11 SE, созданной специально для школьных ноутбуков. Операционная система была разработана для бюджетных компьютеров и образовател...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 08:41
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/news/top/2026-01-05_v_rossii_vnedrena_ii-sistema" target="_blank" rel="noopener noreferrer">
-                                В России внедрена ИИ-система предотвращения брака при производстве печатных плат
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;Три российских электронных предприятия внедрили ИИ-разработку МАИ, которая предсказывает возможные деформации при производстве многослойных печатных плат. При производстве отечественной элект...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 07:39
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/news/top/2026-01-05_eks-ministr_svyazi_rossii" target="_blank" rel="noopener noreferrer">
-                                Экс-министр связи России скупает электростанции для майнинга криптовалют
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;Компания экс-министра связи Николая Никифорова приобрела Дорогобужскую ТЭЦ в Смоленской области. Ранее структуры Никифорова стали владельцами Тутаевской ПГУ в Ярославской области. Приобретаем...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 06:51
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://aihub.org/feed/?cat=-473https://www.computerra.ru/feed/" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> ΑΙhub
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://aihub.org/2026/01/05/forthcoming-machine-learning-and-ai-seminars-january-2026-edition/" target="_blank" rel="noopener noreferrer">
-                                Forthcoming machine learning and AI seminars: January 2026 edition
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">This post contains a list of the AI-related seminars that are scheduled to take place between 5 January and 28 February 2026. All events detailed here are free and open for anyone to attend virtually....</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 10:47
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://aihub.org/2026/01/02/aaai-presidential-panel-ai-perception-versus-reality-video-discussion/" target="_blank" rel="noopener noreferrer">
-                                AAAI presidential panel – AI perception versus reality video discussion
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Lone Thomasky &amp;#38; Bits&amp;#038;Bäume / Distorted Dandelions / Licenced by CC-BY 4.0 In March 2025, the Association for the Advancement of Artificial Intelligence (AAAI), published a report on t...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 02 Jan 09:01
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://aihub.org/2025/12/31/more-than-half-of-new-articles-on-the-internet-are-being-written-by-ai/" target="_blank" rel="noopener noreferrer">
-                                More than half of new articles on the internet are being written by AI
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">By Francesco Agnellini, Binghamton University, State University of New York The line between human and machine authorship is blurring, particularly as it’s become increasingly difficult to tell whethe...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 31 Dec 14:59
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://aihub.org/2025/12/30/2025-digest-of-digests/" target="_blank" rel="noopener noreferrer">
-                                2025 digest of digests
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">2025 has seen another busy 12 months in the world of artificial intelligence. Throughout the year we&amp;#8217;ve reported on some of the larger stories, and some of the lesser-covered happenings, in ...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 30 Dec 09:58
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://aihub.org/2025/12/29/aihub-monthly-digest-december-2025-studying-bias-in-ai-based-recruitment-tools-an-image-dataset-for-ethical-ai-benchmarking-and-end-of-year-compilations/" target="_blank" rel="noopener noreferrer">
-                                AIhub monthly digest: December 2025 – studying bias in AI-based recruitment tools, an image dataset for ethical AI benchmarking, and end of year compilations
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Welcome to our monthly digest, where you can catch up with any AIhub stories you may have missed, peruse the latest news, recap recent events, and more. This month, we look into bias in AI-based recru...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 29 Dec 09:57
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://venturebeat.com/category/ai/feed/" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> AI | VentureBeat
-                    </a>
-                    <span class="article-date">05 Jan 2026</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://venturebeat.com/technology/the-creator-of-claude-code-just-revealed-his-workflow-and-developers-are" target="_blank" rel="noopener noreferrer">
-                                The creator of Claude Code just revealed his workflow, and developers are losing their minds
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;When the creator of the world&amp;#x27;s most advanced coding agent speaks, Silicon Valley doesn&amp;#x27;t just listen — it takes notes.&lt;/p&gt;&lt;p&gt;For the past week, the engineering ...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 05 Jan 07:45
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://3dnews.ru/smart-things/rss" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> 3DNews: Умные вещи
-                    </a>
-                    <span class="article-date">31 Dec 2025</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134263" target="_blank" rel="noopener noreferrer">
-                                Обзор робота-уборщика ECOVACS DEEBOT X11 OmniCyclone: флагманов много не бывает
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;img align=&quot;left&quot; border=&quot;0&quot; height=&quot;85&quot; hspace=&quot;10&quot; src=&quot;https://cdn.3dnews.ru/assets/external/icons/2025/12/22/1134263.jpg&quot; width=&quot;120&quot;...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 31 Dec 09:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1134150" target="_blank" rel="noopener noreferrer">
-                                Обзор робота-уборщика Dreame Aqua10 Ultra Roller Complete: швабры и вёдра дома больше не нужны
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;img align=&quot;left&quot; border=&quot;0&quot; height=&quot;85&quot; hspace=&quot;10&quot; src=&quot;https://cdn.3dnews.ru/assets/external/icons/2025/12/19/1134150.jpg&quot; width=&quot;120&quot;...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 23 Dec 21:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1131300" target="_blank" rel="noopener noreferrer">
-                                Обзор медиаприставки SberBox Max: быстрый Макс
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;img align=&quot;left&quot; border=&quot;0&quot; height=&quot;85&quot; hspace=&quot;10&quot; src=&quot;https://cdn.3dnews.ru/assets/external/icons/2025/10/23/1131300.jpg&quot; width=&quot;120&quot;...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 10 Nov 21:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1130388" target="_blank" rel="noopener noreferrer">
-                                Обзор робота-уборщика Dreame MatriX10 Ultra: работает за троих
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;img align=&quot;left&quot; border=&quot;0&quot; height=&quot;85&quot; hspace=&quot;10&quot; src=&quot;https://cdn.3dnews.ru/assets/external/icons/2025/10/07/1130388.jpg&quot; width=&quot;120&quot;...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 08 Oct 21:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://3dnews.ru/1128280" target="_blank" rel="noopener noreferrer">
-                                Обзор робота-пылесоса ILIFE V2: фокус на сухой уборке
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;img align=&quot;left&quot; border=&quot;0&quot; height=&quot;85&quot; hspace=&quot;10&quot; src=&quot;https://cdn.3dnews.ru/assets/external/icons/2025/08/26/1128280.jpg&quot; width=&quot;120&quot;...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 31 Aug 21:00
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.cnews.ru/inc/rss/analytics.xml" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> CNews.ru
-                    </a>
-                    <span class="article-date">30 Dec 2025</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/reviews/rynok_it-uslug" target="_blank" rel="noopener noreferrer">
-                                Рынок ИТ-услуг 2025
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary"></div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 30 Dec 14:42
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/reviews/tsifrovizatsiya_promyshlennosti_2025" target="_blank" rel="noopener noreferrer">
-                                Цифровизация промышленности 2025
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary"></div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 30 Dec 13:18
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/reviews/tsifrovizatsiya_gossektora_2025_1" target="_blank" rel="noopener noreferrer">
-                                Цифровизация госсектора 2025
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary"></div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 30 Dec 10:40
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/reviews/rynok_platform_kubernetes" target="_blank" rel="noopener noreferrer">
-                                Рынок платформ Kubernetes 2025
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary"></div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 30 Dec 10:38
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.cnews.ru/articles/2025-12-30_6_glavnyh_tehnologicheskih_trendov" target="_blank" rel="noopener noreferrer">
-                                6 главных технологических трендов 2025 года: выбор CNews
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;От 2025 г. ждали прорыва. Многие ожидали появления сильного ИИ, или, по крайней мере, явных признаков его близости. Этого не произошло. Но год не принес и разочарования. Отрезвление оказалось...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 30 Dec 09:42
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.nextplatform.com/feed/" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> The Next Platform
-                    </a>
-                    <span class="article-date">23 Dec 2025</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.nextplatform.com/2025/12/23/rebellions-ai-puts-together-an-hbm-and-arm-alliance-to-take-on-nvidia/" target="_blank" rel="noopener noreferrer">
-                                Rebellions AI Puts Together An HBM And Arm Alliance To Take On Nvidia
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;The number of AI inference chip startups in the world is gross – literally gross, as in a dozen dozens. &lt;a class=&quot;read-more&quot; href=&quot;https://www.nextplatform.com/2025/12/23/re...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 23 Dec 19:05
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.nextplatform.com/2025/12/22/liquid-cooling-means-more-performance-and-less-heat-for-supercomputing/" target="_blank" rel="noopener noreferrer">
-                                Liquid Cooling Means More Performance And Less Heat For Supercomputing
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;If there was ever a demonstration of Jevons&amp;#8217; paradox, it&amp;#8217;s the supercomputing sector. &lt;a class=&quot;read-more&quot; href=&quot;https://www.nextplatform.com/2025/12/22/...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 22 Dec 23:44
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.nextplatform.com/2025/12/19/hbm-supply-curve-gets-steeper-but-still-cant-meet-demand/" target="_blank" rel="noopener noreferrer">
-                                HBM Supply Curve Gets Steeper, But Still Can’t Meet Demand
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;A total addressable market is a forecast of what will be sold – more precisely, what can be manufactured and sold. &lt;a class=&quot;read-more&quot; href=&quot;https://www.nextplatform.com/20...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 19 Dec 17:53
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.nextplatform.com/2025/12/18/nvidia-nearly-completes-its-control-freakery-with-slurm-acquisition/" target="_blank" rel="noopener noreferrer">
-                                Nvidia Nearly Completes Its Control Freakery With Slurm Acquisition
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;It has always been funny to us that anyone can acquire control of an open source project. &lt;a class=&quot;read-more&quot; href=&quot;https://www.nextplatform.com/2025/12/18/nvidia-nearly-co...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 18 Dec 16:17
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.nextplatform.com/2025/12/18/building-the-ai-factory-datacenter/" target="_blank" rel="noopener noreferrer">
-                                Building The AI Factory Datacenter
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;AI is changing what “good” looks like in the modern datacenter. &lt;a class=&quot;read-more&quot; href=&quot;https://www.nextplatform.com/2025/12/18/building-the-ai-factory-datacenter/&quot;&...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 18 Dec 15:00
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://nyheter.aitool.se/feed/" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> AI nyheter
-                    </a>
-                    <span class="article-date">17 Dec 2025</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://nyheter.aitool.se/chatgpt-images-den-nya-bildgeneratorn/" target="_blank" rel="noopener noreferrer">
-                                ChatGPT Images – den nya bildgeneratorn
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;OpenAI har precis släppt en rejäl uppdatering till sin bildgenerator, GPT-Image-1.5 som lovar snabbare bildgenerering, bättre redigering och mer precisa resultat. modellen är betydligt bättre...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 17 Dec 09:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://nyheter.aitool.se/en-fickstor-ai-superdator-kan-kora-ai-modeller-offline/" target="_blank" rel="noopener noreferrer">
-                                En fickstor AI-superdator kan köra AI-modeller offline
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;Det amerikanska startupen Tiiny AI Inc. har lanserat vad som officiellt verifierats av Guinness World Records som världens minsta personliga AI-superdator. Pocket Lab som enheten heter är ung...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 16 Dec 07:22
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://nyheter.aitool.se/longcut-omvandlar-langa-youtube-videor-till-kortare-hojdpunktsklipp/" target="_blank" rel="noopener noreferrer">
-                                LongCut omvandlar långa YouTube-videor till kortare höjdpunktsklipp
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;LongCut är ett smart AI-verktyg som löser ett av internets största problem nämligen alldeles för långa videor. Istället för att sitta igenom en timmes tutorial eller föreläsning får du ut de ...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 16 Dec 05:43
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://nyheter.aitool.se/failgpt-de-storsta-ai-fails-under-2025/" target="_blank" rel="noopener noreferrer">
-                                FailGPT – De största AI fails under 2025
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;År 2025 har varit ett år där den enorma AI-hypen mötte en hårdare verklighet och har präglats av allvarliga AI-misslyckanden inom både produkter och tjänster där 95% av företagens AI-pilotpro...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 15 Dec 06:45
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://nyheter.aitool.se/gemini-ar-nu-en-universal-translator/" target="_blank" rel="noopener noreferrer">
-                                Gemini är nu en universal translator
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">&lt;p&gt;Google Translate utökar sin live-översättningsfunktion till alla typer av trådlösa hörlurar på Android-enheter. Geminis live-översättning är en riktig game-changer eftersom den hoppar över he...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 15 Dec 05:09
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-            <div class="news-card">
-                <div class="source-header">
-                    <a href="https://www.kurzweilai.net/feed" target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-rss"></i> the Kurzweil Libraryclassics – the Kurzweil Library
-                    </a>
-                    <span class="article-date">01 Feb 2025</span>
-                </div>
-                <div class="articles">
-        
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.thekurzweillibrary.com/welcome" target="_blank" rel="noopener noreferrer">
-                                welcome
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary"></div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 01 Feb 06:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.thekurzweillibrary.com/essay-a-concept-for-future-body-design" target="_blank" rel="noopener noreferrer">
-                                A concept for future body design.
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">IMAGE An introduction. Primo 3M+ is a prototype future body, a conceptual design with superlongevity in mind. Primo by design is multi-functional. It&amp;#8217;s reliable, changeable, upgradeable, and...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 01 Jan 06:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.thekurzweillibrary.com/book-the-edge-of-physics" target="_blank" rel="noopener noreferrer">
-                                book | the Edge of Physics
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Despite 20th-century physics&amp;#8217; revelations, from relativity and quantum mechanics to the physics of the atom&amp;#8217;s nucleus and the life cycles of stars, ninety-odd percent of the univer...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 01 Jan 06:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.thekurzweillibrary.com/book-the-singularity-is-nearer" target="_blank" rel="noopener noreferrer">
-                                The Singularity is Nearer
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">Ray Kurzweil’s new non-fiction book on science, tech, and the future The Singularity is Nearer is now available. book website :: visit We hope you enjoy this long-awaited sequel to his 2005 classic th...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 01 Dec 06:00
-                        </div>
-                    </div>
-            
-                    <div class="article">
-                        <div class="article-title">
-                            <a href="https://www.thekurzweillibrary.com/plant-e-makes-electricity-from-living-plants" target="_blank" rel="noopener noreferrer">
-                                Plant-e makes electricity from living plants.
-                                <i class="fas fa-external-link-alt article-link-icon"></i>
-                            </a>
-                        </div>
-                        <div class="article-summary">An introduction. Plants could soon provide our electricity. In a small way they’re already doing that in research labs and greenhouses at project Plant-e. Plant-e is a university and commercially spon...</div>
-                        <div class="article-date">
-                            <i class="fas fa-calendar-alt"></i> 01 Jan 06:00
-                        </div>
-                    </div>
-            
-                </div>
-            </div>
-        
-        </main>
-        
-        <footer>
-            <p>Последнее обновление: <span class="last-update">2026-01-06 01:30</span></p>
-            <p>Новостной агрегатор об искусственном интеллекте и компьютерном железе</p>
-            <p>Для получения новостей требуется подключение к интернету</p>
-        </footer>
-    </div>
+<div class="container">
+<header>
+<h1><i class="fas fa-microchip"></i> Новостной агрегатор AI, мира software и hardware</h1>
+<p class="subtitle">Актуальные новости из <span class="sources-count">17</span> международных и российских источников</p>
+<div class="meta-info">
+<div id="clock-container">
+<i class="fas fa-clock"></i>
+<div id="clock">00:00:00</div>
+</div>
+<div style="display: flex; gap: 15px; align-items: center;">
+<button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">
+<i class="fas fa-moon"></i>
+</button>
+<button class="update-btn pulse" onclick="refreshNews()">
+<i class="fas fa-sync-alt"></i>
+Обновить новости
+</button>
+</div>
+</div>
+</header>
+<main class="news-container" id="news-container">
 
-    <script>
-        // Цифровые часы
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent =
-                now.toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-        }
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.tomshardware.com/rss" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> Latest from Tom&#x27;s Hardware
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
 
-        // Переключение темы
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const newTheme = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            const icon = document.getElementById('theme-toggle').querySelector('i');
-            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
+<div class="article">
+<div class="article-title">
+<a href="https://www.tomshardware.com/tech-industry/chinas-gpu-cloud-consolidates-around-baidu-and-huawei-as-domestic-ai-chips-scale-up" target="_blank" rel="noopener noreferrer">
+China’s GPU cloud consolidates around Baidu and Huawei as domestic AI chips scale up — export controls leave gap open for homegrown solutions
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">China’s GPU cloud market is consolidating rapidly around a small number of domestic champions, with Baidu and Huawei emerging as the clear leaders, as access to Nvidia’s most advanced accelerators rem...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 15:13
+</div>
+</div>
 
-        // Инициализация темы
-        function initTheme() {
-            const saved = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', saved);
-            
-            const icon = document.getElementById('theme-toggle').querySelector('i');
-            icon.className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
+<div class="article">
+<div class="article-title">
+<a href="https://www.tomshardware.com/pc-components/cpus/ces-2026-day-zero-nvidia-debuts-dlss-4-5-ryzen-7-9850x3d-aims-for-desktop-gaming-glory-intel-panther-lake-arrives" target="_blank" rel="noopener noreferrer">
+CES 2026 Day 0: Nvidia debuts DLSS 4.5, Ryzen 7 9850X3D aims for desktop gaming glory, Intel Panther Lake arrives
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">CES 2026 is off to a fast start, with a flurry of announcements coming in from your favorite tech companies</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 15:07
+</div>
+</div>
 
-        // Обновление новостей
-        function refreshNews() {
-            const button = document.querySelector('.update-btn');
-            const container = document.getElementById('news-container');
-            button.classList.remove('pulse');
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
-            container.innerHTML = `
-                <div class="loading">
-                    <i class="fas fa-sync-alt fa-spin fa-2x"></i>
-                    <p>Загружаем свежие новости...</p>
-                </div>
-            `;
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        }
+<div class="article">
+<div class="article-title">
+<a href="https://www.tomshardware.com/tech-industry/artificial-intelligence/amd-unwraps-instinct-mi500-boasting-1-000x-more-performance-versus-mi300x-setting-the-stage-for-the-era-of-yottaflops-data-centers" target="_blank" rel="noopener noreferrer">
+AMD unwraps Instinct MI500 boasting 1,000X more performance versus MI300X — setting the stage for the era of YottaFLOPS data centers
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">AMD announces CDNA 6-based Instinct MI500-series GPUs with HBM4E memory set to arrive in 2027 and offer 1000X higher performance compared to Instinct MI300X.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:56
+</div>
+</div>
 
-        // Автообновление каждые 5 минут
-        function setupAutoRefresh() {
-            setTimeout(() => {
-                refreshNews();
-            }, 300000);
-        }
+<div class="article">
+<div class="article-title">
+<a href="https://www.tomshardware.com/pc-components/cpus/commodore-64-floppy-drive-has-the-power-to-be-a-computer-bulky-1982-commodore-1541-5-25-inch-drive-packs-a-1-mhz-mos-6502-cpu" target="_blank" rel="noopener noreferrer">
+Commodore 64 floppy drive has the power to be a computer — bulky 1982 Commodore 1541 5.25 inch drive packs a 1 MHz MOS 6502 CPU
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">TechTuber shows that the Commodore 1541 floppy disk electronics were powerful and capable enough to work as a standalone computer.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:50
+</div>
+</div>
 
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
-            updateClock();
-            setInterval(updateClock, 1000);
-            setupAutoRefresh();
-            setTimeout(() => {
-                document.querySelector('.update-btn').classList.remove('pulse');
-            }, 5000);
-        });
+<div class="article">
+<div class="article-title">
+<a href="https://www.tomshardware.com/pc-components/gpus/gigabytes-aorus-rtx-5090-infinity-takes-aim-at-asus-rog-matrix-superconducting-heatpipes-windforce-hyperburst-cooling-brings-penetrating-airflow-to-both-sides-of-the-card" target="_blank" rel="noopener noreferrer">
+Gigabyte&#x27;s Aorus RTX 5090 Infinity takes aim at Asus&#x27; ROG Matrix — superconducting heatpipes, &#x27;Windforce Hyperburst&#x27; cooling brings &#x27;penetrating airflow&#x27; to both sides of the card
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Gigabyte’s latest Aorus flagship GPU combines a double flow-through design, advanced thermal materials, and a reduced footprint.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:27
+</div>
+</div>
 
-        // Обработка ошибок изображений
-        document.addEventListener('error', function(e) {
-            if (e.target.tagName === 'IMG') {
-                e.target.style.display = 'none';
-            }
-        }, true);
-    </script>
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://naked-science.ru/?yandex_feed=news" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> Naked Science
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://naked-science.ru/article/astronomy/callistos-nonresonant-orb" target="_blank" rel="noopener noreferrer">
+Астрофизики поняли, почему Каллисто не подчиняется «правилам движения» крупнейших лун Юпитера
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Астрофизики поняли, почему Каллисто не подчиняется «правилам движения» крупнейших лун Юпитера</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 15:07
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://naked-science.ru/article/astronomy/planetologi-predlozhili-r" target="_blank" rel="noopener noreferrer">
+Планетологи предложили решение парадокса древних озер Марса
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Планетологи предложили решение парадокса древних озер Марса</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 10:57
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://naked-science.ru/article/column/problemu-energosnabzheniy" target="_blank" rel="noopener noreferrer">
+Ученые исследовали, как решить проблему энергоснабжения в отдаленных регионах с помощью установок на топливных элементах
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Ученые исследовали, как решить проблему энергоснабжения в отдаленных регионах с помощью установок на топливных элементах</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 07:19
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://naked-science.ru/community/1147786" target="_blank" rel="noopener noreferrer">
+Китайские космонавты прошли подземную «лунную миссию»
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Китайские космонавты прошли подземную «лунную миссию»</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 06:37
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://naked-science.ru/community/1147741" target="_blank" rel="noopener noreferrer">
+Вмешательства США в Южную Америку: сложная история в одном изображении
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Вмешательства США в Южную Америку: сложная история в одном изображении</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 06:01
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://3dnews.ru/hardware-news/rss" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> 3DNews - новости, хард
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134884/asus-obnovila-tonkie-noutbuki-zenbook-i-vivobook-noveyshimi-chipami-intel-amd-i-qualcomm" target="_blank" rel="noopener noreferrer">
+Asus обновила тонкие ноутбуки Zenbook и Vivobook новейшими чипами Intel, AMD и Qualcomm
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Asus представила на выставке CES 2026 масштабное обновление линеек ноутбуков Zenbook и Vivobook — компания расширила присутствие OLED-дисплеев и активно использовала новые процессоры трёх основных про...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 15:03
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134882/finskiy-startap-vstryahnul-mir-akkumulyatorov-nachalas-era-praktichnih-tverdotelnih-batarey" target="_blank" rel="noopener noreferrer">
+Финский стартап встряхнул мир аккумуляторов — началась эра практичных твердотельных батарей
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">На CES 2026 молодая компания Donut Labs из Финляндии объявила о начале первых в мире коммерческих поставок полностью твердотельных литиевых аккумуляторов. Пришла пора новых решений, как заявил глава D...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 15:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134668/dell-predstavila-ogromniy-52dyuymoviy-6kmonitor-ultrasharp-za-2800-i-variant-pomenshe" target="_blank" rel="noopener noreferrer">
+Dell представила огромный 52-дюймовый 6K-монитор UltraSharp за $2800 и вариант поменьше
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Dell представила два новых монитора серии UltraSharp: сверхширокоформатный изогнутый 52-дюймовый с разрешением 6K, выступающий как замена нескольким мониторам сразу; а также 32-дюймовый с матрицей QD-...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 14:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134880" target="_blank" rel="noopener noreferrer">
+Lego представила умные конструкторы Smart Play — они распознают сборку и заставляют модель светиться и звучать соответственно
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Компания Lego представила на выставке CES 2026 новую систему Smart Play. Вместе с традиционными детальками в таких комплектах поставляются интерактивные элементы со встроенной электроникой.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:49
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134878" target="_blank" rel="noopener noreferrer">
+Зарядное устройство Loona Deskmate превратит iPhone в настольного ИИ-ассистента
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Пока Apple только вынашивает идею создания настольного устройства с дисплеем и камерами, которое благодаря приводным механизмам может всегда держать в кадре пользователя в режиме видеоконференции, ком...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:00
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.zdnet.com/topic/artificial-intelligence/rss.xml" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> Latest news
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.zdnet.com/article/neurable-hyperx-brain-reading-gaming-headphones-ces-2026/" target="_blank" rel="noopener noreferrer">
+I watched a gamer use brain-reading headphones under pressure - and he locked in fast
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Neurable returns with its AI-powered brain-reading algorithm, this time in a partnership with HyperX.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 14:52
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.zdnet.com/article/amazon-alexa-plus-website-ces-2026/" target="_blank" rel="noopener noreferrer">
+Alexa+ users can chat with Amazon&#x27;s AI assistant on the web now - here&#x27;s how and where
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Amazon announced a dedicated Alexa+ website, enabling users to interact with the virtual assistant in a manner similar to how they can with ChatGPT.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 14:45
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.zdnet.com/article/ces-2026-live-updates-1-6-26/" target="_blank" rel="noopener noreferrer">
+CES 2026 live updates: Biggest news on TVs, smart glasses, robots and more for Day 2
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">The world&#x27;s biggest technology trade show is underway, and we&#x27;re tracking the best announcements from top brands all week long.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 14:18
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.zdnet.com/article/viture-beast-xr-glasses-review/" target="_blank" rel="noopener noreferrer">
+These XR glasses gave me a 174-inch screen to work with - and a shockingly wide field of view
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">With a bright Sony micro-OLED display and 120Hz refresh rate, the Beast XR are Viture&#x27;s best glasses yet.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 14:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.zdnet.com/article/weird-tech-ces-2026/" target="_blank" rel="noopener noreferrer">
+The weirdest tech I&#x27;ve seen at CES 2026 - so far
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">The show floor at CES is packed with strange, odd, and unusual gadgets.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:42
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://news.ycombinator.com/rss" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> Hacker News
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://philippdubach.com/standalone/hn-sentiment/" target="_blank" rel="noopener noreferrer">
+65% of Hacker News Posts Have Negative Sentiment, and They Outperform
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 14:45
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://blgardner.github.io/prism.tools/" target="_blank" rel="noopener noreferrer">
+Show HN: Prism.Tools – Free and privacy-focused developer utilities
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 12:33
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://enclose.horse/" target="_blank" rel="noopener noreferrer">
+enclose.horse
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 06:01
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.theregister.com/2026/01/05/aws_price_increase/" target="_blank" rel="noopener noreferrer">
+AWS raises GPU prices 15% on a Saturday, hopes you weren&#x27;t paying attention
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 11:42
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://cedardb.com/blog/german_strings/" target="_blank" rel="noopener noreferrer">
+Why German Strings Are Everywhere?
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:30
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.nextplatform.com/feed/" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> The Next Platform
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.nextplatform.com/2026/01/06/amd-contemplates-and-engineers-yottascale-ai-compute/" target="_blank" rel="noopener noreferrer">
+AMD Contemplates And Engineers Yottascale AI Compute
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Under Lisa Su’s more than eleven years as AMD’s chief executive officer, the company has returned from Opteron exile to be a formidable CPU foe to Intel in the datacenter, due in large part to the inn...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 13:28
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.nextplatform.com/2026/01/05/nvidias-vera-rubin-platform-obsoletes-current-ai-iron-six-months-ahead-of-launch/" target="_blank" rel="noopener noreferrer">
+Nvidia’s Vera-Rubin Platform Obsoletes Current AI Iron Six Months Ahead Of Launch
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Having an annual cadence for the improvement of AI systems is a great thing if you happen to be buying the newest iron at exactly the right time. … Nvidia’s Vera-Rubin Platform Obsoletes Current AI Ir...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 03:33
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.nextplatform.com/2025/12/23/rebellions-ai-puts-together-an-hbm-and-arm-alliance-to-take-on-nvidia/" target="_blank" rel="noopener noreferrer">
+Rebellions AI Puts Together An HBM And Arm Alliance To Take On Nvidia
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">The number of AI inference chip startups in the world is gross – literally gross, as in a dozen dozens. … Rebellions AI Puts Together An HBM And Arm Alliance To Take On Nvidia was written by Timothy P...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 23 Dec 19:05
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.nextplatform.com/2025/12/22/liquid-cooling-means-more-performance-and-less-heat-for-supercomputing/" target="_blank" rel="noopener noreferrer">
+Liquid Cooling Means More Performance And Less Heat For Supercomputing
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">If there was ever a demonstration of Jevons’ paradox, it’s the supercomputing sector. … Liquid Cooling Means More Performance And Less Heat For Supercomputing was written by David Gordon at The Next P...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 22 Dec 23:44
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.nextplatform.com/2025/12/19/hbm-supply-curve-gets-steeper-but-still-cant-meet-demand/" target="_blank" rel="noopener noreferrer">
+HBM Supply Curve Gets Steeper, But Still Can’t Meet Demand
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">A total addressable market is a forecast of what will be sold – more precisely, what can be manufactured and sold. … HBM Supply Curve Gets Steeper, But Still Can’t Meet Demand was written by Timothy P...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 19 Dec 17:53
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.computerra.ru/feed/" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> Компьютерра
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.computerra.ru/333252/kak-prodlit-srok-sluzhby-ssd/" target="_blank" rel="noopener noreferrer">
+Как продлить срок службы SSD
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">SEO Компьютерра Твердотельные накопители (SSD) давно стали стандартом для настольных компьютеров и ноутбуков, однако вопрос, как продлить их срок службы, по-прежнему остается актуальным. Несмотря на о...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 12:35
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.computerra.ru/333302/kuda-dvizhetsya-avtomatizatsiya-atoma-intervyu-s-andreem-butko/" target="_blank" rel="noopener noreferrer">
+Куда движется автоматизация атома: интервью с Андреем Бутко
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Филипп Коротков В последние десятилетия промышленность и энергетика не просто стали другими — изменились не только технологии, но и само понимание того, как должна работать сложная система, спроектиро...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 11:20
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.computerra.ru/333249/malyj-biznes-pod-pritselom-pochemu-70-utechek-dannyh-prihoditsya-na-msb-i-vo-chto-obhoditsya-ekonomiya-na-zashhite/" target="_blank" rel="noopener noreferrer">
+Малый бизнес под прицелом: почему 70% утечек данных приходится на МСБ и во что обходится экономия на защите
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Софья Ефремова Российские компании малого и среднего бизнеса стали основной мишенью киберпреступников — на них приходится около 70% всех утечек данных в результате атак. При этом многие владельцы до с...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 09:28
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.computerra.ru/333374/intel-predstavlyaet-protsessory-novogo-pokoleniya-panther-lake-na-ces-2026/" target="_blank" rel="noopener noreferrer">
+Intel представляет процессоры нового поколения Panther Lake на CES 2026
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Компьютерра Компания Intel представила на выставке CES 2026 новое поколение клиентских процессоров — линейку Core Ultra Series 3 Panther Lake. Это знаковое событие для компании, поскольку данные чипы ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 09:21
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.computerra.ru/333368/dzhensen-huang-predstavil-uskoriteli-rubin-na-ces-2026/" target="_blank" rel="noopener noreferrer">
+Дженсен Хуанг представил ускорители Rubin на CES 2026
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Компьютерра Компания Nvidia представила новую платформу для искусственного интеллекта Vera Rubin. Ее чипы нового поколения, по заявлению главы компании, обеспечивают пятикратный прирост производительн...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 09:01
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.cnews.ru/inc/rss/news.xml" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> CNews.ru
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/news/top/2026-01-06_odin_iz_krupnejshih_elektrosetevyh" target="_blank" rel="noopener noreferrer">
+Один из крупнейших электросетевых холдингов мира покупает российские криптошлюзы и серверы на отечественном Linux
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">«Россети» создают комплексную систему информационной безопасности на основе ПАКов ViPNet и серверов «Аквариус» с Astra Linux и «Касперским».</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 12:06
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/news/top/2026-01-06_v_yanvare_2026_goda_polzovateli" target="_blank" rel="noopener noreferrer">
+Из Gmail уберут протокол, позволяющий собирать письма со сторонних адресов
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Google собирается удалить из Gmail две функции в январе 2026 г. К ним относятся расширение Gmailify и поддержка протокола post office protocol для почты из других клиентов. Эти ИТ-инструменты позволял...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 10:35
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/news/top/2026-01-06_amd_prezentovala_novye_ii-chipy" target="_blank" rel="noopener noreferrer">
+AMD презентовала новые ИИ-чипы и пообещала рост производительности в 1000 раз
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Производитель процессоров AMD обещает в 2027 г. запустить в продажу чипы для искусственного интеллекта серии MI500, которые будут в тысячу раз производительнее предыдущих версий.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 10:11
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/news/top/2026-01-06_v_rossii_sozdayut_natsionalnyj" target="_blank" rel="noopener noreferrer">
+Путин поручил создать национальный план развития и внедрения ИИ в России
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Путин поручил Правительству в ближайшие полгода подготовить масштабный план развития ИИ на национальном уровне. Под контролем специальной комиссии при Президенте ИИ будут внедрять в различные отрасли ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 09:51
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/news/top/2026-01-06_razrabotchikidesyatiletiyami" target="_blank" rel="noopener noreferrer">
+Разработчики, десятилетиями трудившиеся на западные компании, создали российский продукт для микроэлектроники
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">«Т1» представила CAE-систему для инженерных расчетов в микроэлектронике и электронике «Таумерикс», которая также интегрируется с системой CADFlow. Над проектом работал коллектив разработчиков, который...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 07:42
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://aihub.org/feed/?cat=-473" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> ΑΙhub
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://aihub.org/2026/01/06/what-are-small-language-models-and-how-do-they-differ-from-large-ones/" target="_blank" rel="noopener noreferrer">
+What are small language models and how do they differ from large ones?
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Teresa Berndtsson / Letter Word Text Taxonomy / Licenced by CC-BY 4.0 By Lin Tian, University of Technology Sydney and Marian-Andrei Rizoiu, University of Technology Sydney Microsoft recently released...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 11:27
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://aihub.org/2026/01/05/forthcoming-machine-learning-and-ai-seminars-january-2026-edition/" target="_blank" rel="noopener noreferrer">
+Forthcoming machine learning and AI seminars: January 2026 edition
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">This post contains a list of the AI-related seminars that are scheduled to take place between 5 January and 28 February 2026. All events detailed here are free and open for anyone to attend virtually....</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 05 Jan 10:47
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://aihub.org/2026/01/02/aaai-presidential-panel-ai-perception-versus-reality-video-discussion/" target="_blank" rel="noopener noreferrer">
+AAAI presidential panel – AI perception versus reality video discussion
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Lone Thomasky &amp; Bits&amp;Bäume / Distorted Dandelions / Licenced by CC-BY 4.0 In March 2025, the Association for the Advancement of Artificial Intelligence (AAAI), published a report on the Future of AI R...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 02 Jan 09:01
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://aihub.org/2025/12/31/more-than-half-of-new-articles-on-the-internet-are-being-written-by-ai/" target="_blank" rel="noopener noreferrer">
+More than half of new articles on the internet are being written by AI
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">By Francesco Agnellini, Binghamton University, State University of New York The line between human and machine authorship is blurring, particularly as it’s become increasingly difficult to tell whethe...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 31 Dec 14:59
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://aihub.org/2025/12/30/2025-digest-of-digests/" target="_blank" rel="noopener noreferrer">
+2025 digest of digests
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">2025 has seen another busy 12 months in the world of artificial intelligence. Throughout the year we’ve reported on some of the larger stories, and some of the lesser-covered happenings, in our regula...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 30 Dec 09:58
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://3dnews.ru/breaking/rss" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> 3DNews - важные новости
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134872/honor-predstavila-smartfon-power2-s-batarey-na-10-080-mach-i-dizaynom-iphone-17-pro-max" target="_blank" rel="noopener noreferrer">
+Honor представила смартфон Power2 с батарей на 10 080 мА·ч и дизайном iPhone 17 Pro Max
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Компания Honor представила в Китае смартфон Power2, оснащённый очень ёмким кремний-углеродным аккумулятором на 10 080 мА·ч. Производитель заявляет, что устройство способно проработать свыше 20 часов б...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 11:27
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134868/nvidia-pokazala-kak-viglyadit-resident-evil-requiem-s-trassirovkoy-puti-i-poddergkoy-dlss-4-v-4k" target="_blank" rel="noopener noreferrer">
+Nvidia показала, как выглядит Resident Evil Requiem с трассировкой пути и поддержкой DLSS 4 в 4K
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Nvidia на выставке потребительской электроники CES 2026 представила новый геймплейный трейлер амбициозного хоррора Resident Evil Requiem c демонстрацией новейших технологий компании. #residentevilrequ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 10:29
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134866/vsego-odna-kosmicheskaya-chastitsa-slomala-noveyshiy-ispanskiy-sputnik-svyazi-za-1-mlrd" target="_blank" rel="noopener noreferrer">
+Всего одна космическая частица сломала новейший испанский спутник связи за €1 млрд
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Компания Indra сообщила, что новейший спутник связи — SpainSat NG-2, запущенный в интересах Министерства обороны Испании и ЕС, серьёзно повреждён попаданием космической частицы. Удар зафиксирован на в...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 10:18
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134863/millioni-igrokov-po-vsemu-miru-ostalis-bez-dostupa-k-league-of-legends-potomu-chto-riot-opyat-zabila-obnovit-sslsertifikat" target="_blank" rel="noopener noreferrer">
+Миллионы игроков по всему миру остались без доступа к League of Legends, потому что Riot опять забыла обновить SSL-сертификат
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Популярная мультиплеерная игра League of Legends недавно на несколько часов вышла из строя по всему миру из-за забывчивости со стороны её разработчиков из американской студии Riot Games (принадлежит к...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 09:21
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134862/nvidia-predstavila-dlss-45-eshchyo-bolshe-sgenerirovannih-ii-kadrov-s-mfg-6h-no-bez-poteri-kachestva" target="_blank" rel="noopener noreferrer">
+Nvidia представила DLSS 4.5 — ещё больше сгенерированных ИИ кадров с MFG 6х, но без потери качества
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Анонсы Nvidia на выставке CES 2026 в значительной мере были посвящены технологиям искусственного интеллекта. Компания представила усовершенствованный набор решений DLSS 4.5 в области масштабирования г...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 09:19
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.opennet.ru/opennews/opennews_all.rss" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> OpenNews.opennet.ru: Общая лента новостей
+</a>
+<span class="article-date">06 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.opennet.ru/opennews/art.shtml?num=64569" target="_blank" rel="noopener noreferrer">
+Утечка BootROM-ключей Sony Playstation 5
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">В открытый доступ попал набор данных, в котором были найдены BootROM-ключи для игровой приставки Sony Playstation 5, применяемые для расшифровки и верификации начального загрузчика. При помощи данных ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 07:13
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.opennet.ru/opennews/art.shtml?num=64568" target="_blank" rel="noopener noreferrer">
+Выпуск фильтрующего прокси Privoxy 4.1.0
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">После года разработки опубликован релиз прокси-сервера Privoxy 4.1.0, предназначенного для создания персональных фильтров web-контента. При помощи Privoxy можно вырезать рекламные вставки, отбрасывать...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 06 Jan 07:04
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.opennet.ru/opennews/art.shtml?num=64567" target="_blank" rel="noopener noreferrer">
+GNOME и Firefox намерены отключить по умолчанию вставку средней кнопкой мыши
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Для применения в GNOME и Firefox предложены изменения, отключающие по умолчанию одну из полезных функций графических окружений в Linux - возможность быстрой вставки содержимого буфера обмена (PRIMARY ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 05 Jan 19:47
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.opennet.ru/opennews/art.shtml?num=64565" target="_blank" rel="noopener noreferrer">
+Представлены умные часы Pebble Round 2 на открытой платформе PebbleOS
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Эрик Мигиковски (Eric Migicovsky), основатель компании Pebble Technology, представил умные часы Pebble Round 2, которые будут выпускаться на базе открытой платформы PebbleOS. Новая модель дополнила вы...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 05 Jan 18:49
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.opennet.ru/opennews/art.shtml?num=64563" target="_blank" rel="noopener noreferrer">
+Участники команды Debian Data Protection Team сложили полномочия
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Андреас Тилле (Andreas Tille), лидер проекта Debian, опубликовал отчёт, в котором упомянул о проблемах в команде Data Protection Team - три представителя, работавших в данной команде, одновременно сло...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 05 Jan 11:58
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://venturebeat.com/category/ai/feed/" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> AI | VentureBeat
+</a>
+<span class="article-date">05 Jan 2026</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://venturebeat.com/technology/the-creator-of-claude-code-just-revealed-his-workflow-and-developers-are" target="_blank" rel="noopener noreferrer">
+The creator of Claude Code just revealed his workflow, and developers are losing their minds
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">When the creator of the world&#x27;s most advanced coding agent speaks, Silicon Valley doesn&#x27;t just listen — it takes notes.For the past week, the engineering community has been dissecting a thread on X fr...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 05 Jan 07:45
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://3dnews.ru/smart-things/rss" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> 3DNews: Умные вещи
+</a>
+<span class="article-date">31 Dec 2025</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134263" target="_blank" rel="noopener noreferrer">
+Обзор робота-уборщика ECOVACS DEEBOT X11 OmniCyclone: флагманов много не бывает
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">В тестовой лаборатории 3DNews вновь побывал робот-уборщик класса high-end. На этот раз разговор пойдет о модели ECOVACS DEEBOT X11 OmniCyclone — современной системе с многофункциональной станцией само...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 31 Dec 09:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1134150" target="_blank" rel="noopener noreferrer">
+Обзор робота-уборщика Dreame Aqua10 Ultra Roller Complete: швабры и вёдра дома больше не нужны
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Вот мы и дожили до того момента, когда термин «робот-пылесос» применительно к некоторой категории умных уборщиков звучит уже даже несколько уничижительно. Ярким примером такого устройства является мод...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 23 Dec 21:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1131300" target="_blank" rel="noopener noreferrer">
+Обзор медиаприставки SberBox Max: быстрый Макс
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">SberBox стала в свое время первым продуктом «гаджетного» подразделения «Сбера» — и продуктом очень удачным. За пять лет с момента ее выхода много раз обновлялось ПО, вышла вторая версия приставки и во...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 10 Nov 21:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1130388" target="_blank" rel="noopener noreferrer">
+Обзор робота-уборщика Dreame MatriX10 Ultra: работает за троих
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Не прошло и года, а в линейке роботов Dreame уже появился новый флагман. К модели X50 Ultra, и без того изощренной, добавили станцию самообслуживания с функцией автоматической смены трех комплектов шв...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 08 Oct 21:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://3dnews.ru/1128280" target="_blank" rel="noopener noreferrer">
+Обзор робота-пылесоса ILIFE V2: фокус на сухой уборке
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Нередко владельцы роботов-пылесосов не используют и трети функций, заложенных производителем. Часто управление устройством сводится к одной задаче: включить автоматический режим уборки — и этого в 99 ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 31 Aug 21:00
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://www.cnews.ru/inc/rss/analytics.xml" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> CNews.ru
+</a>
+<span class="article-date">30 Dec 2025</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/reviews/rynok_it-uslug" target="_blank" rel="noopener noreferrer">
+Рынок ИТ-услуг 2025
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 30 Dec 14:42
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/reviews/tsifrovizatsiya_promyshlennosti_2025" target="_blank" rel="noopener noreferrer">
+Цифровизация промышленности 2025
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 30 Dec 13:18
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/reviews/tsifrovizatsiya_gossektora_2025_1" target="_blank" rel="noopener noreferrer">
+Цифровизация госсектора 2025
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 30 Dec 10:40
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/reviews/rynok_platform_kubernetes" target="_blank" rel="noopener noreferrer">
+Рынок платформ Kubernetes 2025
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Описание недоступно.</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 30 Dec 10:38
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://www.cnews.ru/articles/2025-12-30_6_glavnyh_tehnologicheskih_trendov" target="_blank" rel="noopener noreferrer">
+6 главных технологических трендов 2025 года: выбор CNews
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">От 2025 г. ждали прорыва. Многие ожидали появления сильного ИИ, или, по крайней мере, явных признаков его близости. Этого не произошло. Но год не принес и разочарования. Отрезвление оказалось продукти...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 30 Dec 09:42
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="news-card">
+<div class="source-header">
+<a href="https://nyheter.aitool.se/feed/" target="_blank" rel="noopener noreferrer">
+<i class="fas fa-rss"></i> AI nyheter
+</a>
+<span class="article-date">17 Dec 2025</span>
+</div>
+<div class="articles">
+
+<div class="article">
+<div class="article-title">
+<a href="https://nyheter.aitool.se/chatgpt-images-den-nya-bildgeneratorn/" target="_blank" rel="noopener noreferrer">
+ChatGPT Images – den nya bildgeneratorn
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">OpenAI har precis släppt en rejäl uppdatering till sin bildgenerator, GPT-Image-1.5 som lovar snabbare bildgenerering, bättre redigering och mer precisa resultat. modellen är betydligt bättre på att f...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 17 Dec 09:00
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://nyheter.aitool.se/en-fickstor-ai-superdator-kan-kora-ai-modeller-offline/" target="_blank" rel="noopener noreferrer">
+En fickstor AI-superdator kan köra AI-modeller offline
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Det amerikanska startupen Tiiny AI Inc. har lanserat vad som officiellt verifierats av Guinness World Records som världens minsta personliga AI-superdator. Pocket Lab som enheten heter är ungefär lika...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 16 Dec 07:22
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://nyheter.aitool.se/longcut-omvandlar-langa-youtube-videor-till-kortare-hojdpunktsklipp/" target="_blank" rel="noopener noreferrer">
+LongCut omvandlar långa YouTube-videor till kortare höjdpunktsklipp
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">LongCut är ett smart AI-verktyg som löser ett av internets största problem nämligen alldeles för långa videor. Istället för att sitta igenom en timmes tutorial eller föreläsning får du ut de viktigast...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 16 Dec 05:43
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://nyheter.aitool.se/failgpt-de-storsta-ai-fails-under-2025/" target="_blank" rel="noopener noreferrer">
+FailGPT – De största AI fails under 2025
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">År 2025 har varit ett år där den enorma AI-hypen mötte en hårdare verklighet och har präglats av allvarliga AI-misslyckanden inom både produkter och tjänster där 95% av företagens AI-pilotprojekt har ...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 15 Dec 06:45
+</div>
+</div>
+
+<div class="article">
+<div class="article-title">
+<a href="https://nyheter.aitool.se/gemini-ar-nu-en-universal-translator/" target="_blank" rel="noopener noreferrer">
+Gemini är nu en universal translator
+<i class="fas fa-external-link-alt article-link-icon"></i>
+</a>
+</div>
+<div class="article-summary">Google Translate utökar sin live-översättningsfunktion till alla typer av trådlösa hörlurar på Android-enheter. Geminis live-översättning är en riktig game-changer eftersom den hoppar över hela text-s...</div>
+<div class="article-date">
+<i class="fas fa-calendar-alt"></i> 15 Dec 05:09
+</div>
+</div>
+
+</div>
+</div>
+
+</main>
+<footer>
+<p>Последнее обновление: <span class="last-update">2026-01-06 18:29</span></p>
+<p>Новостной агрегатор об искусственном интеллекте и компьютерном железе</p>
+<p>Для получения новостей требуется подключение к интернету</p>
+</footer>
+</div>
+<script>
+function updateClock() {
+const now = new Date();
+document.getElementById('clock').textContent =
+now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+}
+function toggleTheme() {
+const current = document.documentElement.getAttribute('data-theme');
+const newTheme = current === 'dark' ? 'light' : 'dark';
+document.documentElement.setAttribute('data-theme', newTheme);
+localStorage.setItem('theme', newTheme);
+const icon = document.getElementById('theme-toggle').querySelector('i');
+icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+function initTheme() {
+const saved = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', saved);
+const icon = document.getElementById('theme-toggle').querySelector('i');
+icon.className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+function refreshNews() {
+const button = document.querySelector('.update-btn');
+const container = document.getElementById('news-container');
+button.classList.remove('pulse');
+button.disabled = true;
+button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+container.innerHTML = `<div class="loading"><i class="fas fa-sync-alt fa-spin fa-2x"></i><p>Загружаем свежие новости...</p></div>`;
+setTimeout(() => { location.reload(); }, 1500);
+}
+function setupAutoRefresh() { setTimeout(refreshNews, 300000); }
+document.addEventListener('DOMContentLoaded', () => {
+initTheme();
+updateClock();
+setInterval(updateClock, 1000);
+setupAutoRefresh();
+setTimeout(() => { document.querySelector('.update-btn').classList.remove('pulse'); }, 5000);
+});
+</script>
 </body>
 </html>
-    
